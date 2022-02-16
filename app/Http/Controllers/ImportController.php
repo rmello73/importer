@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Contact;
 use App\CsvData;
 use App\Http\Requests\CsvImportRequest;
 use Illuminate\Http\Request;
@@ -34,7 +33,7 @@ class ImportController extends Controller
                     $csv_header_fields[] = $key;
                 }
             }
-            $csv_data = array_slice($data, 0, 2);
+            $csv_data = array_slice($data, 0, 100);
 
             $csv_data_file = CsvData::create([
                 'csv_filename' => $request->file('csv_file')->getClientOriginalName(),
@@ -48,24 +47,4 @@ class ImportController extends Controller
         return view('import_fields', compact( 'csv_header_fields', 'csv_data', 'csv_data_file'));
 
     }
-
-    public function processImport(Request $request)
-    {
-        $data = CsvData::find($request->csv_data_file_id);
-        $csv_data = json_decode($data->csv_data, true);
-        foreach ($csv_data as $row) {
-            $contact = new Contact();
-            foreach (config('app.db_fields') as $index => $field) {
-                if ($data->csv_header) {
-                    $contact->$field = $row[$request->fields[$field]];
-                } else {
-                    $contact->$field = $row[$request->fields[$index]];
-                }
-            }
-            $contact->save();
-        }
-
-        return view('import_success');
-    }
-
 }
